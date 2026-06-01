@@ -1,0 +1,31 @@
+# ImageUpdater CR for sweep-mcp.
+#
+# Distributed per architecture/applicationset-patterns.md (in homelab
+# repo): IU CRDs live next to their app's deploy manifests, enrolled
+# via the image-updater-apps ApplicationSet in argocd-projects.
+#
+# Watches harbor.sirddail.net/ai/sweep-mcp for semver release tags
+# (bare X.Y.Z; see [[feedback_git_tag_vs_image_tag_convention]]).
+# Tags are created by docker-release.yaml in sweep-mcp-docker on every
+# GitHub release publish.
+apiVersion: argocd-image-updater.argoproj.io/v1alpha1
+kind: ImageUpdater
+metadata:
+  name: sweep-mcp-iu
+spec:
+  namespace: argocd
+  applicationRefs:
+    - namePattern: "sweep-mcp"
+      useAnnotations: false
+      images:
+        - alias: "sweep-mcp"
+          imageName: "harbor.sirddail.net/ai/sweep-mcp:0.x"
+          commonUpdateSettings:
+            pullSecret: "pullsecret:sweep-mcp/sweep-mcp-harbor-pull"
+            forceUpdate: false
+      writeBackConfig:
+        method: "git"
+        gitConfig:
+          repository: "https://github.com/dvystrcil/sweep-mcp.git"
+          branch: "main"
+          writeBackTarget: "kustomization:/base"

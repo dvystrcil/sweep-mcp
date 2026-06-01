@@ -1,0 +1,78 @@
+# sweep-mcp Deployment.
+#
+# Single-replica Go MCP server. Stateless — the only outbound connection
+# is to the in-cluster n8n model-sweep-kickoff webhook. Same probe pattern
+# as tor-character-mcp.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: sweep-mcp
+  namespace: sweep-mcp
+  labels:
+    app.kubernetes.io/name: sweep-mcp
+    app.kubernetes.io/part-of: homelab-mcp
+spec:
+  replicas: 1
+  revisionHistoryLimit: 2
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: sweep-mcp
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: sweep-mcp
+        app.kubernetes.io/part-of: homelab-mcp
+    spec:
+      automountServiceAccountToken: false
+      imagePullSecrets:
+        - name: sweep-mcp-harbor-pull
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 10001
+        runAsGroup: 10001
+        fsGroup: 10001
+        seccompProfile:
+          type: RuntimeDefault
+      containers:
+        - name: sweep-mcp
+          image: harbor.sirddail.net/ai/sweep-mcp:dev
+          imagePullPolicy: Always
+          args:
+            - --http=:8080
+          env:
+            # Override default if n8n moves namespaces or you need to
+            # point at a staging instance.
+            - name: N8N_KICKOFF_URL
+              value: "http://n8n.n8n-workflow.svc.cluster.local/webhook/model-sweep-kickoff"
+          ports:
+            - name: http
+              containerPort: 8080
+              protocol: TCP
+          resources:
+            requests:
+              memory: "16Mi"
+              cpu: "10m"
+            limits:
+              memory: "64Mi"
+              cpu: "200m"
+          startupProbe:
+            httpGet:
+              path: /healthz
+              port: http
+            failureThreshold: 30
+            periodSeconds: 2
+          readinessProbe:
+            httpGet:
+              path: /healthz
+              port: http
+            periodSeconds: 10
+          livenessProbe:
+            httpGet:
+              path: /healthz
+              port: http
+            periodSeconds: 30
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop: ["ALL"]
+            readOnlyRootFilesystem: true

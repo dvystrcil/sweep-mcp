@@ -28,4 +28,4 @@ spec:
         gitConfig:
           repository: "https://github.com/dvystrcil/sweep-mcp.git"
           branch: "main"
-          writeBackTarget: "kustomization:/base"
+          writeBackTarget: "kustomization:/overlays"

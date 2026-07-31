@@ -48,13 +48,15 @@ spec:
             - name: http
               containerPort: 8080
               protocol: TCP
+          # D-012 (VPA epic homelab#455): requests right-sized from the
+          # Off-mode VPA's measured target. See notes in the PR body.
           resources:
             requests:
-              memory: "16Mi"
-              cpu: "10m"
+              cpu: 25m
+              memory: 250Mi
             limits:
-              memory: "64Mi"
-              cpu: "200m"
+              cpu: 200m
+              memory: 320Mi
           startupProbe:
             httpGet:
               path: /healthz

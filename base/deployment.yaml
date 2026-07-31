@@ -48,12 +48,17 @@ spec:
             - name: http
               containerPort: 8080
               protocol: TCP
+          # D-012 (VPA epic homelab#455): requests set from the Off-mode
+          # VPA's target -- for this near-idle workload that's the
+          # recommender's own minimum floor (25m/250Mi), not a measured
+          # peak (see homelab#455 comment). Memory limit bumped alongside
+          # it since the new request would otherwise exceed the old limit.
           resources:
             requests:
-              memory: "16Mi"
-              cpu: "10m"
+              memory: "250Mi"
+              cpu: "25m"
             limits:
-              memory: "64Mi"
+              memory: "320Mi"
               cpu: "200m"
           startupProbe:
             httpGet:

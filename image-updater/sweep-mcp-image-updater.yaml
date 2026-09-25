@@ -13,7 +13,6 @@ kind: ImageUpdater
 metadata:
   name: sweep-mcp-iu
 spec:
-  namespace: argocd
   applicationRefs:
     - namePattern: "sweep-mcp"
       useAnnotations: false
